@@ -28,6 +28,7 @@ dependencies:
 - text
 - containers
 - bifunctors
+- mtl
 
 library:
   source-dirs: src
