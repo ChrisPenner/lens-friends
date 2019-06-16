@@ -29,6 +29,7 @@ dependencies:
 - containers
 - bifunctors
 - comonad
+- mtl
 
 library:
   source-dirs: src

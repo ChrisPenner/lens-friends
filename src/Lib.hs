@@ -5,7 +5,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE OverloadedStrings #-}
 module Lib where
 
 import Control.Lens
@@ -17,17 +16,13 @@ import Text.RawString.QQ
 import Data.Map as M
 import Data.Bifunctor.Join
 import Control.Comonad
+import Control.Monad.State
+import Data.Monoid
+import Data.Ord
 
--- | branched :: Functor f => (f (Getter s a)) -> Getter s (f a)
--- λ> [(1, "test"), (2, "three")] ^. branched [folded . _2, folded . _1 . re _Show, ix 1 . _2]
--- ["testthree","12","three"]
--- branched ::
---   (Profunctor p, Contravariant f1, Functor f2) =>
---   f2 (Getting b s b) -> Optic' p f1 s (f2 b)
--- branched :: Functor f => (f (Getter s a)) -> Getter s (f a)
-branched getters = to go
-  where
-    go s = flip view s <$> getters
+infixl 8 ^!.
+(^!.) :: (Applicative f, Monoid a) => s -> Fold s (f a) -> f a
+s ^!. fld = getAp (s ^. fld . to Ap)
 
 test1 = [(1 :: Int, "hi" :: String), (2, "there")]
       ^. branched go
@@ -202,3 +197,6 @@ splitting' p f t = choose t
   where
     choose a | p a = f (Right a)
              | otherwise = f (Left a)
+infixl 8 ^!..
+(^!..) :: (Applicative f, Monoid a) => s -> Fold s (f a) -> f [a]
+s ^!.. fld = sequenceA (s ^.. fld)
