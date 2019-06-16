@@ -28,6 +28,7 @@ dependencies:
 - text
 - containers
 - bifunctors
+- comonad
 
 library:
   source-dirs: src

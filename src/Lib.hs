@@ -16,6 +16,7 @@ import Data.String
 import Text.RawString.QQ
 import Data.Map as M
 import Data.Bifunctor.Join
+import Control.Comonad
 
 -- | branched :: Functor f => (f (Getter s a)) -> Getter s (f a)
 -- λ> [(1, "test"), (2, "three")] ^. branched [folded . _2, folded . _1 . re _Show, ix 1 . _2]
@@ -43,9 +44,9 @@ example = [(1 :: Int, "hello" :: String), (2, "world")]
                  , _2 . to length . re _Right
                  ]
 
-> example
-[ Left "1", Left "olleh", Right 100, Right 5
-, Left "2", Left "dlrow", Right 200, Right 5 ]
+-- > example
+-- [ Left "1", Left "olleh", Right 100, Right 5
+-- , Left "2", Left "dlrow", Right 200, Right 5 ]
 
 -- Unify the left side of a Bitraversable with the right, then traverse both
 matchLeft t = beside t id
@@ -185,3 +186,19 @@ collectUsers =
       . branched
           (Pair (key "name" . _String)
                 (key "profile" . key "pet" . key "name" . _String))
+
+
+extended :: (Comonad w, Traversable w) => Traversal (w a) (w b) (w a) b
+extended f w = sequenceA $ extend f w
+
+splitting :: forall a b. (a -> Bool) -> Traversal a b (Either a a) (Either b b)
+splitting p f t = either id id <$> choose t
+  where
+    choose a | p a = f (Right a)
+             | otherwise = f (Left a)
+
+splitting' :: forall a b. (a -> Bool) -> Traversal a b (Either a a) b
+splitting' p f t = choose t
+  where
+    choose a | p a = f (Right a)
+             | otherwise = f (Left a)
