@@ -30,6 +30,7 @@ dependencies:
 - bifunctors
 - comonad
 - mtl
+- witherable
 
 library:
   source-dirs: src
