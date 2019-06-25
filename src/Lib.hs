@@ -19,6 +19,7 @@ import Control.Comonad
 import Control.Monad.State
 import Data.Monoid
 import Data.Ord
+import Branched hiding (users)
 
 infixl 8 ^!.
 (^!.) :: (Applicative f, Monoid a) => s -> Fold s (f a) -> f a
@@ -160,9 +161,6 @@ test3 = inp
    . values
    . branched (Pair (key "name" . _String) (key "image" . _String))
 
-
-data Pair a = Pair  a a
-  deriving (Functor, Show)
 
 users :: Value
 users = view (singular $ _JSON @String) [r|
