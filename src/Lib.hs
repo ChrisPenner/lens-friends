@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DerivingVia #-}
 module Lib where
 
 import Control.Lens
@@ -25,3 +26,6 @@ s ^!. fld = getAp (s ^. fld . to Ap)
 infixl 8 ^!..
 (^!..) :: (Applicative f, Monoid a) => s -> Fold s (f a) -> f [a]
 s ^!.. fld = sequenceA (s ^.. fld)
+
+newtype Err = Err String
+  deriving (Semigroup, Monoid, Show) via String

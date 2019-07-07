@@ -29,6 +29,7 @@ dependencies:
 - containers
 - bifunctors
 - mtl
+- witherable
 
 library:
   source-dirs: src
