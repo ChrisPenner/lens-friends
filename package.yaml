@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - lens
 - lens-aeson
+- lens-action
 - raw-strings-qq
 - aeson
 - text
@@ -31,6 +32,10 @@ dependencies:
 - comonad
 - mtl
 - witherable
+- zippers
+- lens-regex-pcre
+- bytestring
+- pcre-light
 
 library:
   source-dirs: src
