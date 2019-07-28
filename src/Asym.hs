@@ -54,9 +54,6 @@ infixr 8 <->
 (<->) :: (Semigroup t, Applicative f) => LensLike f s t a b -> LensLike f s t a b -> LensLike f s t a b
 (<->) alens blens f s = liftA2 (<>) (alens f s) (blens f s)
 
-form :: Applicative f => Refraction f Form User Void
-form = userName . capped injForm <-> userAddress . inject appendForm . capped'
-
 appendForm :: String -> Form -> Form
 appendForm s f = Form [s] <> f
 
@@ -68,4 +65,7 @@ run l = runIdentity . l pure
 
 run' :: Refraction Identity a s Void -> s -> a
 run' l = runIdentity . l absurd
+
+form :: Applicative f => Refraction f Form User Void
+form = userName . capped injForm <-> userAddress . inject appendForm . capped'
 

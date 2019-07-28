@@ -25,6 +25,13 @@ sliced' start end stepSize f xs =
     pickElements i = i >= (if stepSize >= 0 then start' else end') && i < (if stepSize >= 0 then end' else start')
     stepper i = i `mod` abs stepSize == 0
 
+isliced :: Traversable t => Int -> Int -> Int -> IndexedTraversal' Int (t a) a
+isliced start end step =
+    (partsOf (traversed . withIndex) . sliced' start end step . indexBy fst) <. _2
+  where
+    indexBy :: (a -> i) -> IndexedTraversal' i a a
+    indexBy f p a = indexed p (f a) a
+
 -- >>> [1..10] ^.. sliced 5 2 (-1)
 -- [5,4,3]
 -- >>> [1..10] ^.. sliced 0 5 1

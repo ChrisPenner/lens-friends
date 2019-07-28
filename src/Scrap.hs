@@ -14,6 +14,8 @@ import Data.Kind
 import Control.Lens
 import Data.Word
 import Data.Bits.Lens
+import Data.Bifunctor
+import Control.Applicative
 
 data SymbolOrType where
   S :: Symbol -> SymbolOrType
@@ -32,4 +34,3 @@ structure = id
 
 test :: String -> Word8 -> Bool
 test s n = map (=='1') s == n ^.. bits
-
