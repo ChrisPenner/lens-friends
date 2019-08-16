@@ -129,15 +129,13 @@ query =
 
 mutated =
     inp
-    & (reindexed (^?! key "image" . _String)
-        (key "spec"
+    & key "spec"
     . key "containers"
     . values
-    . selfIndex)
+    . reindexed (^?! key "image" . _String) selfIndex
     . index "mysql"
     -- . filteredHaving (key "port" . _Number . only 80)
-    <. (key "name" . _String)
-      )
+    . cloneIndexPreservingTraversal (key "name" . _String)
     %@~ (<>)
 
 
@@ -204,3 +202,12 @@ s ^!.. fld = sequenceA (s ^.. fld)
 
 newtype Err = Err String
   deriving (Semigroup, Monoid, Show) via String
+
+
+args = ["1", "2", "3", "4"]
+
+-- >>> args ^?! (_tail . _head . _Show `failing` like 0)
+-- 2
+-- >>> args ^?! (ix 99 . _Show `failing` like 0)
+-- 0
+
