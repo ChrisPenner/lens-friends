@@ -10,10 +10,11 @@ import Control.Comonad
 import Control.Comonad.Store
 import Data.List.NonEmpty
 
-zoomExtend :: ComonadApply w => Lens s t a b -> (w a -> b) -> w s -> w t
-zoomExtend l f ws = liftW2 (set l) (extend f wa)  ws
+zoomExtend :: forall w s t a b. Comonad w => Lens s t a b -> (w a -> b) -> w s -> w t
+zoomExtend l f ws = (extend go ws)
   where
-    wa = viewer l <$> ws
+    go :: w s -> t
+    go ws' = set l (f (viewer l <$> ws')) (extract ws')
     viewer :: forall s t a b. Lens s t a b -> s -> a
     viewer l s = getConst $ l Const s
 
@@ -21,7 +22,12 @@ zoomExtend l f ws = liftW2 (set l) (extend f wa)  ws
 st :: Store (Sum Int) (Int, String)
 st = store (getSum &&& show . getSum) 1
 
--- ex :: NonEmpty (Int, String)
--- ex = (id &&& show) <$> 0 :| [1..5]
+ex :: NonEmpty (Int, String)
+ex = (id &&& show) <$> 0 :| [1..5]
 
-ex' = zoomExtend _1 (peeks (+1)) st
+
+ex' :: NonEmpty (Int, [Char])
+ex' = zoomExtend _1 sum ex
+
+st' :: StoreT (Sum Int) Identity (Int, [Char])
+st' = zoomExtend _1 (peeks (+1)) st
