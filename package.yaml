@@ -35,7 +35,9 @@ dependencies:
 - zippers
 - lens-regex-pcre
 - bytestring
+- profunctors
 - pcre-light
+- free
 
 library:
   source-dirs: src
