@@ -49,24 +49,35 @@ data BT a
     deriving (Show, Eq, Functor, Foldable, Traversable)
 makeLenses ''BT
 
-    -- 4
-  -- 2   7
-   -- 3 6
-tree :: BT Int
-tree = BT (BT Leaf
-              2
-              (BT Leaf 3 Leaf))
-          4
-          (BT (BT Leaf 6 Leaf) 7 Leaf)
-
 branchBy :: (a -> Bool) -> Traversal' a b -> Traversal' a b -> Traversal' a b
 branchBy p ta tb f s =
     if p s then ta f s
            else tb f s
 
 binSearch :: Int -> BT Int -> Bool
-binSearch n t = has (deepOf (branchBy (anyOf val (>n)) leftTree rightTree) (val . only n)) t
+binSearch n = has (deepOf (branchBy (anyOf val (> n)) leftTree rightTree) (val . only n))
 
+
+--     4
+--    / \
+--  /     \
+-- 2       7
+--  \     /
+--   3   6
+tree :: BT Int
+tree =
+    BT (BT Leaf 2 (BT Leaf 3 Leaf))
+       4
+       (BT (BT Leaf 6 Leaf) 7 Leaf)
+
+-- >>> binSearch 2 tree
+-- True
+-- >>> binSearch 3 tree
+-- True
+-- >>> binSearch 6 tree
+-- True
+-- >>> binSearch 20 tree
+-- False
 
 
 type BinTree a = Cofree (Join (,) `Compose` Maybe) a
@@ -89,7 +100,7 @@ _R' :: Traversal' (BinTree a) (BinTree a)
 _R' = (_unwrap . _Wrapped' . _Wrapped' . _2 . _Just)
 
 binSearchCofree :: Int -> BinTree Int -> Bool
-binSearchCofree n = has (deepOf (choose ((>n) . extract) _L' _R') (_extract . only n))
+binSearchCofree n = has (deepOf (branchBy ((>n) . extract) _L' _R') (_extract . only n))
 
 
     -- 4
