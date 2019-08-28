@@ -1,8 +1,12 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Recurse where
 
 import Control.Lens hiding ((:<))
@@ -15,6 +19,9 @@ import Control.Comonad
 import Data.Bifunctor.Join
 import Data.Functor.Compose
 import Control.Arrow
+import Data.Proxy
+import Data.Data
+import Data.Data.Lens
 
 -- just unfold?
 recurseOf :: Traversal' a a -> (a -> a) -> a -> a
@@ -106,3 +113,26 @@ binSearchCofree n = has (deepOf (branchBy ((>n) . extract) _L' _R') (_extract . 
     -- 4
   -- 2   7
    -- 3 6
+
+
+data KTree f a =
+    KTree { _value     :: a
+          , _kchildren :: (f (KTree f a))
+          }
+
+makeLenses ''KTree
+
+nodes :: forall t a. Traversable t => Traversal' (KTree t a) (KTree Proxy a)
+nodes f s =
+    let newChildren = (traverse . nodes) f (view kchildren s)
+        newTop = f (s & kchildren .~ Proxy)
+     in set kchildren <$> newChildren <*> newTop
+
+ktree :: KTree [] Int
+ktree =
+    KTree 1
+          [ KTree 2 [KTree 4 []]
+          , KTree 3 []
+          ]
+
+

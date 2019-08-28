@@ -38,6 +38,7 @@ dependencies:
 - profunctors
 - pcre-light
 - free
+- pretty-simple
 
 library:
   source-dirs: src
