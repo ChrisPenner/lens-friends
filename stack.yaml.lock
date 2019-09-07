@@ -11,9 +11,16 @@ packages:
       sha256: c4f3bc0bb7874c855717f3f3fe3813dbd41bf06ca4e90e2e5164cba188d7f6aa
   original:
     hackage: lens-regex-pcre-0.3.1.0
+- completed:
+    hackage: extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+    pantry-tree:
+      size: 1828
+      sha256: 61a764a72012e96ac338622af1dbcd8d7620d5952ccd631fc708fb0c5343494a
+  original:
+    hackage: extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
 snapshots:
 - completed:
-    size: 494116
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/3.yaml
-    sha256: d9b0ca796c677a8fd429009d09afc6c9efe260b8789c264ce11641e3e727466f
-  original: lts-13.3
+    size: 523448
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/1.yaml
+    sha256: 0045b9bae36c3bb2dd374c29b586389845af1557eea0423958d152fc500d4fbf
+  original: lts-14.1
