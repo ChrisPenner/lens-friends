@@ -13,7 +13,7 @@ module Lib where
 import Control.Lens
 import Data.Aeson.Lens
 import Data.Aeson
-import Data.Text hiding (index, length)
+import Data.Text as T hiding (index, length)
 import Data.String
 import Text.RawString.QQ
 import Data.Map as M
@@ -23,6 +23,10 @@ import Control.Monad.State
 import Data.Monoid
 import Data.Ord
 import Branched hiding (users)
+import Data.Function
+import Data.Char as Char
+import Data.List as L
+import Control.Lens.Regex
 
 infixl 8 ^!.
 (^!.) :: (Applicative f, Monoid a) => s -> Fold s (f a) -> f a
@@ -211,3 +215,7 @@ args = ["1", "2", "3", "4"]
 -- >>> args ^?! (ix 99 . _Show `failing` like 0)
 -- 0
 
+
+snakeToTitle :: T.Text -> T.Text
+snakeToTitle = regex [rx|_\w|] . match %~ T.tail . T.toUpper
+-- snakeToTitle s = L.groupBy ((==) `on` (== '_')) s ^. traversed . filtered (/="_") . to (_head %~ Char.toUpper)

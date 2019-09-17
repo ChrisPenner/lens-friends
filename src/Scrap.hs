@@ -24,7 +24,7 @@ import Control.Applicative
 import Data.Function
 import Data.Foldable
 import Data.Monoid
-import GHC.Generics hiding (S)
+import GHC.Generics (Generic)
 
 data SymbolOrType where
   S :: Symbol -> SymbolOrType
@@ -106,4 +106,33 @@ ex' = [1, 2, 3] & fold [ix 40, ix 30, ix 1] .~ 20
 
 -- -- do or; do not. if _Nothing `isn't` Just Right then _ else _
 
+pets :: [(String, [String])]
+pets = [ ("Steven", ["Spot", "Mittens"]) , ("Kaylee", ["Pepper", "Sparky"]) ]
 
+ -- >>> pets ^@.. traverse . chooseIndex fst <. _2 . folded
+ -- [("Steven","Spot"),("Steven","Mittens"),("Kaylee","Pepper"),("Kaylee","Sparky")]
+
+
+chooseIndex :: (s -> i) -> IndexedLensLike i f s t s t
+chooseIndex getIndex = reindexed getIndex selfIndex
+
+-- >>> pets ^@..   -- Starting with all pets, we want an INDEXED (@) list of focuses
+--        folded   -- Fold over the top-list, focusing each (owner, pets) tuple
+--     .  reindexed fst selfIndex -- Take the focus as our index, but then apply `fst` to it
+--     <. _2  -- <. says to use the earlier index for the next part, then dive into _2
+--     . folded -- fold over the list of pet names, focusing each one
+
+-- >>> pets ^@..  folded .  reindexed fst selfIndex <. _2 . folded
+-- [ ("Steven", "Spot")
+-- , ("Steven", "Mittens")
+-- , ("Kaylee", "Pepper")
+-- , ("Kaylee", "Sparky")
+-- ]
+
+-- `@` always means "with an index", and for `toListOf` a.k.a. `^..` it pairs results up in a tuple!
+
+-- >>> pets ^. folded . to sequence
+-- [("Steven","Spot"),("Steven","Mittens"),("Kaylee","Pepper"),("Kaylee","Sparky")]
+
+-- >>> pets ^. folded . to (sequenceOf _2)
+-- [("Steven","Spot"),("Steven","Mittens"),("Kaylee","Pepper"),("Kaylee","Sparky")]
