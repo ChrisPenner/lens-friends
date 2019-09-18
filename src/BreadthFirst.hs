@@ -3,6 +3,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE TupleSections #-}
 module BreadthFirst where
 
 import Control.Lens hiding ((:<))
@@ -10,9 +11,11 @@ import Data.Tree
 import Control.Monad.State
 import Data.IntMap
 import Data.Function
+import Data.Tree.Lens
 import Control.Applicative
 import Control.Arrow
 import Control.Comonad.Cofree
+import Control.Lens.Unsound
 
 data Ap w f a where
   Pure :: a -> Ap w f a
@@ -28,6 +31,9 @@ instance (Ord w) => Applicative (Ap w f) where
   a@(Ap w x y) <*> b
     | getPriority a <= getPriority b = Ap w x (flip <$> y <*> b)
     | otherwise = b <**> a
+
+liftAp :: w -> f a -> Ap w f a
+liftAp w fa = Ap w fa (Pure id)
 
 -- | This must be a monotonic (i.e. order preserving) function
 --
@@ -87,3 +93,17 @@ infinite :: IO ()
 infinite = retract $ go 0
     where
       go n = priority n (print n) *> go (n + 1)
+
+breadthOf :: Traversal' s s -> Traversal' s a -> Traversal' s a
+breadthOf recursions t f s = retract (s & breadthOf' recursions t %%~ liftAp (0, []) . f)
+
+breadthOf' :: forall f s a. Traversal' s s -> Traversal' s a -> LensLike' (Ap (Int, [Int]) f) s a
+breadthOf' recursions t = partial . nextPart
+    where
+      partial :: Lens' s ([s], [a])
+      partial = lensProduct (partsOf recursions) (partsOf t)
+      nextPart :: LensLike' (Ap (Int, [Int]) f) ([s], [a]) a
+      nextPart f s =
+          mapPriority (first succ) (s & beside (traversed . wonky . breadthOf' recursions t) traversed %%~ f)
+      wonky :: (Indexable Int p) => p s (Ap (x, [Int]) f t) -> Indexed Int s (Ap (x, [Int]) f t)
+      wonky f = Indexed $ \i s -> mapPriority (second (<> [i])) (indexed f i s)

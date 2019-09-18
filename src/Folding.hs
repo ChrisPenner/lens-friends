@@ -9,6 +9,7 @@ import Data.Foldable
 import Data.Monoid hiding (First)
 import Data.Semigroup
 import Control.Arrow
+import Data.Functor.Contravariant
 
 dumbExample :: [Maybe [Maybe Int]]
 dumbExample = [Just [Just 1, Nothing], Nothing, Just [Just 20, Just 300], Just [Just 4000, Just 50000]]
@@ -99,6 +100,11 @@ x'd = foldMap' . inJust
 asumming :: (Alternative f, Foldable f) => Fold s (f a) -> Fold s a
 asumming fld = to (\s -> asum (s ^.. fld )) . folded
 
+sequencing :: (Applicative f) => Fold s (f a) -> Fold s (f [a])
+sequencing fld = to (\s -> sequenceA (s ^.. fld))
+
+inside' :: (Functor f) => Getter s a -> Fold (f s) (f a)
+inside' l f s = phantom $ f (fmap (view l) s)
 
 altOf :: forall s m f. (Alternative f, Foldable f) => Fold s (f m) -> Fold s m
 altOf fld = to (^.. fld) . to asum . folded
