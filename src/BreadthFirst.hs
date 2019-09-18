@@ -94,6 +94,9 @@ infinite = retract $ go 0
     where
       go n = priority n (print n) *> go (n + 1)
 
+breadth :: Plated s => Traversal' s a -> Traversal' s a
+breadth = breadthOf plate
+
 breadthOf :: Traversal' s s -> Traversal' s a -> Traversal' s a
 breadthOf recursions t f s = retract (s & breadthOf' recursions t %%~ liftAp (0, []) . f)
 
