@@ -98,12 +98,15 @@ breadthOf :: Traversal' s s -> Traversal' s a -> Traversal' s a
 breadthOf recursions t f s = retract (s & breadthOf' recursions t %%~ liftAp (0, []) . f)
 
 breadthOf' :: forall f s a. Traversal' s s -> Traversal' s a -> LensLike' (Ap (Int, [Int]) f) s a
-breadthOf' recursions t = partial . nextPart
+breadthOf' recursions t = splitParts . findFocuses
     where
-      partial :: Lens' s ([s], [a])
-      partial = lensProduct (partsOf recursions) (partsOf t)
-      nextPart :: LensLike' (Ap (Int, [Int]) f) ([s], [a]) a
-      nextPart f s =
-          mapPriority (first succ) (s & beside (traversed . wonky . breadthOf' recursions t) traversed %%~ f)
-      wonky :: (Indexable Int p) => p s (Ap (x, [Int]) f t) -> Indexed Int s (Ap (x, [Int]) f t)
-      wonky f = Indexed $ \i s -> mapPriority (second (<> [i])) (indexed f i s)
+      increaseDepth :: Ap (Int, d) f x -> Ap (Int, d) f x
+      increaseDepth = mapPriority (first succ)
+      splitParts :: Lens' s ([s], [a])
+      splitParts = lensProduct (partsOf recursions) (partsOf t)
+      findFocuses :: LensLike' (Ap (Int, [Int]) f) ([s], [a]) a
+      findFocuses f s =
+          increaseDepth (s & beside (traversed . tagLocations . breadthOf' recursions t) traversed %%~ f)
+
+      tagLocations :: (s -> Ap (x, [Int]) f t) -> Indexed Int s (Ap (x, [Int]) f t)
+      tagLocations f = Indexed $ \i s -> mapPriority (second (<> [i])) (f s)
