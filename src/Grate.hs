@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 module Grate where
 
 import Control.Lens as L
@@ -6,6 +7,8 @@ import Lens.Family2.Unchecked
 import Data.Function as F
 import Data.Maybe
 import Control.Comonad
+import Data.Distributive
+import Data.Functor.Rep as Rep
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type Grate g s t a b = (g a -> b) -> g s -> t
@@ -31,12 +34,11 @@ fixedSize n = grate (go 0)
     go n' f | n == n' = []
     go n' f =  f ((^?! ix n') . cycle) : go (n' + 1) f
 
-cyclize :: Int -> Grate [a] [b] a b
-cyclize n = grate (go 0)
+cyclize :: Grate [a] [b] a b
+cyclize = grate (go 0)
   where
     go :: Int -> (([a] -> a) -> b) -> [b]
-    go n' f | n == n' =  f ((^?! ix n') . cycle) : go (n' + 1) f
-    go n' f =  f ((^?! ix n') . cycle) : go (n' + 1) f
+    go n f =  f ((^?! ix n) . cycle) : go (n + 1) f
 
 -- | A grate over infinite lists which pads once past defined data.
 paddize :: forall a b. a -> Grate [a] [b] a b
@@ -54,6 +56,61 @@ adaptT l f s = (l (f . pure) . extract) s
 
 adaptG :: (Applicative f, Comonad f) => ((g a -> b) -> (g s -> t)) -> AdapterLike f g s t a b
 adaptG l f s = pure $ l (extract . f) s
+
+_1G :: forall a b m. Monoid m => Grate (a, m) (b, m) a b
+_1G = grate go
+  where
+    go :: (((a, m) -> a) -> b) -> (b, m)
+    go indexer = ((indexer fst), mempty)
+
+-- holyGrail :: [(Int, ())] -> [(Int, ())] -> [(Int, ())]
+holyGrail :: Monoid m => Grate [(a, m)] [(b, m)] a b
+holyGrail = cyclize . _1G
+
+-- derivative :: Grate' (Double -> Double) Double
+-- derivative = grate go
+--   where
+--     go :: (((Double -> Double) -> Double) -> Double) -> Double -> Double
+--     go indexer n = indexer (nearby n)
+--     nearby n f = f (n + 1) - f (n - 1)
+
+-- (((Double -> Double) -> Double) -> (Double -> s) -> s
+-- derivative :: GrateLike' ((->) Double) s Double -> (Double -> s) -> s
+derivative :: Grate' s Double -> (Double -> s) -> (Double -> s)
+derivative g gs d = g (nearby d) (gs)
+  where
+    nearby :: Double -> (Double -> Double) -> Double
+    nearby n f = (f (n + 1) - f (n - 1)) / 2
+
+-- >>> let dx = derivative represented (\x -> Pair (x**2) ((-x) **3))
+-- >>> dx 3.25
+-- Pair 6.5 (-32.6875)
+
+data Pair a = Pair a a
+    deriving (Functor, Show)
+
+instance Distributive Pair where
+    distribute = distributeRep
+
+instance Representable Pair where
+  type Rep Pair = Bool
+  index (Pair a _) False = a
+  index (Pair _ b) True = b
+  tabulate f = Pair (f False) (f True)
+
+represented :: forall f a b. Representable f => Grate (f a) (f b) a b
+represented = grate go
+  where
+    go :: ((f a -> a) -> b) -> f b
+    go indexer = tabulate (indexer . flip Rep.index)
+
+-- fork :: forall s t a b a' b'. Grate s t a b -> Grate s t a' b' -> Grate s t (a, a') (b, b')
+-- fork g1 g2 f gs =
+--     where
+--       degrated1 :: ((s -> a) -> b) -> t
+--       degrated1 = degrating g1
+--       degrated2 :: ((s -> a') -> b') -> t
+--       degrated2 = degrating g2
 
 x, y :: [Int]
 x = [1..10]

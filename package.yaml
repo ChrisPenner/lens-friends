@@ -68,6 +68,8 @@ dependencies:
 - free
 - pretty-simple
 - lens-family
+- adjunctions
+- distributive
 
 library:
   source-dirs: src
