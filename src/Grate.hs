@@ -7,8 +7,10 @@ import Lens.Family2.Unchecked
 import Data.Function as F
 import Data.Maybe
 import Control.Comonad
+import Control.Monad
 import Data.Distributive
 import Data.Functor.Rep as Rep
+import qualified Data.List.NonEmpty as NE
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type Grate g s t a b = (g a -> b) -> g s -> t
@@ -103,6 +105,47 @@ represented = grate go
   where
     go :: ((f a -> a) -> b) -> f b
     go indexer = tabulate (indexer . flip Rep.index)
+
+-- extendy :: Comonad w => Lens' s a -> GrateLike' w s a
+-- extendy l f gs =
+
+-- extendThrough :: ComonadApply w => L.Lens' s a -> (w a -> a) -> w s -> w s
+-- extendThrough l f w = liftW2 (L.set l) (extend f (L.view l <$> w)) w
+
+extendOn :: ComonadApply w => L.Lens s t a b -> (w a -> b) -> w s -> w t
+extendOn l f w = liftW2 (L.set l) (extend f (viewer l <$> w)) w
+  where
+    viewer :: L.Lens s t a b -> s -> a
+    viewer l = getConst . l Const
+
+-- bindOn :: Monad m => L.Lens s t a b -> (a -> m b) -> m s -> m t
+-- bindOn l f m = m >>= \s -> L.set l <$> (f $ viewer l s) <*> pure s
+--   where
+--     viewer :: L.Lens s t a b -> s -> a
+--     viewer l = getConst . l Const
+
+bindOn :: Monad m => L.Traversal s t a b -> (a -> m b) -> m s -> m t
+bindOn l f m = m >>= l %%~ f
+
+
+extendThrough :: forall s t a b w. Comonad w => Grate s t a b -> (w a -> b) -> w s -> w t
+extendThrough g f = extend (degrated . helper)
+  where
+    helper :: w s -> (s -> a) -> b
+    helper w' sToA = f (sToA <$> w')
+    degrated :: ((s -> a) -> b) -> t
+    degrated = degrating g
+
+
+neList :: NE.NonEmpty (Pair String)
+neList = Pair "a" "A" NE.:| [Pair "b" "B",  Pair "c" "C"]
+
+neTuples :: NE.NonEmpty (String, String)
+neTuples = ("a", "A") NE.:| [("b", "B"),  ("c", "C")]
+
+
+-- regrate :: Grate' s a -> s -> Grate' s s
+-- regrate gr f s = undefined
 
 -- fork :: forall s t a b a' b'. Grate s t a b -> Grate s t a' b' -> Grate s t (a, a') (b, b')
 -- fork g1 g2 f gs =
