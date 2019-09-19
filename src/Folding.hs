@@ -140,3 +140,16 @@ aggregateByOf fld f g = aggregateOf (fld . to (f &&& g))
 -- fromList [(3,["cat","dog","ant"]),(5,["snake"]),(6,["rabbit"]),(9,["albatross"])]
 -- >>> aggregateByOf (folded . both) length (:[]) animals
 -- fromList [(3,["cat","dog","ant"]),(5,["snake"]),(6,["rabbit"]),(9,["albatross"])]
+
+-- >>> let x = [[Right 1], [Right 10, Left "ERROR"]]
+-- >>> sumOf (asumming (folded . traversed)) x
+-- 1
+
+foldMapM :: (Foldable t, Applicative m, Monoid b) => (a -> m b) -> t a -> m b
+foldMapM f s = getAp $ foldMap (Ap . f) s
+
+foldMapIO :: (Foldable t, Monoid b) => (a -> IO b) -> t a -> IO b
+foldMapIO = foldMap
+
+-- foldMapM :: (Monad m, Monoid b, Foldable t) => (a -> m b) -> t a -> m b
+-- foldMapM k = foldM (\b a -> mappend b <$> k a) mempty

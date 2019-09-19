@@ -1,6 +1,9 @@
 extra-deps:
 - lens-regex-pcre-0.3.1.0
 - extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+- lens-family-2.0.0
+- lens-family-core-2.0.0
+
 packages:
 - .
 resolver: lts-14.1

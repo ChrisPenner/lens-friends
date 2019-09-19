@@ -113,3 +113,19 @@ breadthOf' recursions t = splitParts . findFocuses
 
       tagLocations :: (s -> Ap (x, [Int]) f t) -> Indexed Int s (Ap (x, [Int]) f t)
       tagLocations f = Indexed $ \i s -> mapPriority (second (<> [i])) (f s)
+
+-- >>> cotree
+-- 1 :<
+--     [ 2 :<
+--         [ 4 :<
+--             [ 5 :<
+--                 [ 6 :< [ 7 :< [] ] ]
+--             ]
+--         ]
+--     , 3 :<
+--         [ 40 :< []
+--         , 50 :< []
+--         ]
+--     ]
+-- >>> cotree ^.. breadth _extract
+-- [ 1 , 2 , 3 , 4 , 40 , 50 , 5 , 6 , 7 ]

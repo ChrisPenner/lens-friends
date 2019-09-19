@@ -67,6 +67,7 @@ dependencies:
 - pcre-light
 - free
 - pretty-simple
+- lens-family
 
 library:
   source-dirs: src

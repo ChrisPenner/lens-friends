@@ -18,6 +18,20 @@ packages:
       sha256: 61a764a72012e96ac338622af1dbcd8d7620d5952ccd631fc708fb0c5343494a
   original:
     hackage: extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
+- completed:
+    hackage: lens-family-2.0.0@sha256:b915001e862bda2ad5e0e5c17ba59f4483d02a02cbac020fd35f58e6736bc9a7,1989
+    pantry-tree:
+      size: 612
+      sha256: 4bb7e89dabf9042b8208b427f71929d7a6c5e029af6d6f38d9b5fde9af234b94
+  original:
+    hackage: lens-family-2.0.0
+- completed:
+    hackage: lens-family-core-2.0.0@sha256:645b0553e16a3857b08fa44f11f0664296e1db5d6494a83634711c7f4f1707a7,2290
+    pantry-tree:
+      size: 880
+      sha256: 67fda41cf1ae034c7b7d7246550d6f906b3eeae1bbb438fd47a328bf44b6a46e
+  original:
+    hackage: lens-family-core-2.0.0
 snapshots:
 - completed:
     size: 523448
