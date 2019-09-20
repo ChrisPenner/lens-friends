@@ -70,6 +70,7 @@ dependencies:
 - lens-family
 - adjunctions
 - distributive
+- either
 
 library:
   source-dirs: src
