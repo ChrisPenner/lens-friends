@@ -11,6 +11,7 @@ import Control.Monad
 import Data.Distributive
 import Data.Functor.Rep as Rep
 import qualified Data.List.NonEmpty as NE
+import Data.Foldable as F
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type GrateLike (g :: Type -> Type) s t a b = (g a -> b) -> g s -> t
 -- type Grate g s t a b = (g a -> b) -> g s -> t
@@ -112,8 +113,8 @@ represented = grate go
 -- extendThrough :: ComonadApply w => L.Lens' s a -> (w a -> a) -> w s -> w s
 -- extendThrough l f w = liftW2 (L.set l) (extend f (L.view l <$> w)) w
 
-extendOn :: ComonadApply w => L.Lens s t a b -> (w a -> b) -> w s -> w t
-extendOn l f w = liftW2 (L.set l) (extend f (viewer l <$> w)) w
+extendOf :: ComonadApply w => L.Lens s t a b -> (w a -> b) -> w s -> w t
+extendOf l f w = liftW2 (L.set l) (extend f (viewer l <$> w)) w
   where
     viewer :: L.Lens s t a b -> s -> a
     viewer l = getConst . l Const
@@ -124,9 +125,8 @@ extendOn l f w = liftW2 (L.set l) (extend f (viewer l <$> w)) w
 --     viewer :: L.Lens s t a b -> s -> a
 --     viewer l = getConst . l Const
 
-bindOn :: Monad m => L.Traversal s t a b -> (a -> m b) -> m s -> m t
-bindOn l f m = m >>= l %%~ f
-
+bindOf :: Monad m => L.Traversal s t a b -> (a -> m b) -> m s -> m t
+bindOf l f m = m >>= l %%~ f
 
 extendThrough :: forall s t a b w. Comonad w => Grate s t a b -> (w a -> b) -> w s -> w t
 extendThrough g f = extend (degrated . helper)
@@ -135,6 +135,62 @@ extendThrough g f = extend (degrated . helper)
     helper w' sToA = f (sToA <$> w')
     degrated :: ((s -> a) -> b) -> t
     degrated = degrating g
+
+(-<) :: Comonad w => Grate s t a b -> (w a -> b) -> w s -> w t
+(-<) = extendThrough
+
+-- withContext :: Representable f => Iso' s (a, s') -> GrateLike' f s a -> GrateLike' f s a
+withContext :: Representable f => (s -> s -> s) -> GrateLike' f s a -> GrateLike' f s a
+withContext i gr f gs = undefined (gr f gs)
+-- fmap (L.view (from i))
+
+
+-- fixed :: forall f s t a b. Representable f => Grate' s t a b -> (Rep f -> a -> (Rep f -> b) -> b) -> f s -> f t
+-- fixed gr f fs = degrated (helper undefined)
+--   where
+--     helper :: (s -> a) -> b
+--     helper sToA = undefined
+--     degrated :: ((s -> a) -> b) -> t
+--     degrated = degrating g
+
+-- fixed :: forall f s t a b. Representable f => (Rep f -> a -> (Rep f -> b) -> b) -> Grate (f a) (f b) a b
+-- fixed f fs gs = degrated (helper undefined)
+--   where
+--     helper :: (f a -> a) -> b
+--     helper faToA = faToA (tabulate . flip Rep.index)
+--     degrated :: ((f a -> a) -> b) -> f b
+--     degrated = degrating g
+
+-- factorial :: Int -> Int
+-- factorial
+
+factorialFix :: ((Int -> Int) -> Int -> Int)
+factorialFix f 0 = 1
+factorialFix f n = n * f (n - 1)
+
+testFixed :: (a -> a -> Int) -> (Int -> a) -> (Int -> a) -> (Int -> Int)
+testFixed = zipWithOf (fixed factorialFix)
+
+testFixedAgain :: (a -> a -> Int) -> (Int -> a) -> (Int -> a) -> (Int -> Int)
+testFixedAgain = zipWithOf (fixed (represented . factorialFix))
+
+
+testFixed' :: (Int -> [a]) -> (Int -> [a]) -> (Int -> Int)
+testFixed' = zipWithOf (fixed factorialFix) (\x y -> length x)
+
+fixed :: forall f a b. Representable f => ((Rep f -> b) -> Rep f -> b) -> Grate (f a) (f b) a b
+fixed fixer = grate go
+  where
+    repper :: f b -> Rep f -> b
+    repper fb r = fixer (Rep.index fb) r
+    go :: ((f a -> a) -> b) -> f b
+    go indexer = fix $ \fb -> tabulate (repper fb)
+
+exampleExtendThrough :: NE.NonEmpty (Pair String)
+exampleExtendThrough =
+    neList
+    L.& represented -< fold
+-- Pair "abc" "ABC" :| [Pair "bc" "BC",Pair "c" "C"]
 
 
 neList :: NE.NonEmpty (Pair String)
