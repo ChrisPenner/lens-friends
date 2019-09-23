@@ -9,30 +9,67 @@ import Debug.Trace
 import Data.Either.Validation
 import Data.Semigroup
 import Data.Functor
+import Data.Functor.Compose
+import Data.Monoid (Alt(..))
 
-alternately :: (Alternative f, Foldable f) => (s -> f a) -> LensLike f s t a t
-alternately fork' f s = asum $ fmap f (fork' s)
+newtype AltConstF f a b = AltConstF {getAltConst :: (f a)}
+    deriving stock Functor
 
--- No good?
-alternately' :: (Foldable g, Alternative f, Monad f) => (s -> g (f a)) -> LensLike f s t a t
-alternately' fork' f s = asum (fork' s) >>= f
+instance (Alternative f) => Applicative (AltConstF f a) where
+  pure a = AltConstF empty
+  AltConstF fa <*> AltConstF fa' = AltConstF (fa *> fa')
+
+instance (Alternative f) => Alternative (AltConstF f a) where
+  empty = AltConstF empty
+  AltConstF fa <|> AltConstF fb = AltConstF (fa <|> fb)
+
+instance (Semigroup a, Applicative f) => Semigroup (AltConstF f a b) where
+  AltConstF fa <> AltConstF fb = AltConstF $ liftA2 (<>) fa fb
+
+instance (Monoid a, Applicative f) => Monoid (AltConstF f a b) where
+  mempty = AltConstF (pure mempty)
+
+instance Contravariant (AltConstF f a) where
+  contramap _ (AltConstF fa) = AltConstF fa
+
+forked :: (Alternative f, Traversable t, Applicative t) => LensLike f (t a) (t b) a b
+forked f ta = pure <$> asum (fmap f ta)
+
+filterFork :: forall f s t a b. (Foldable f, Applicative f, Traversable t, Alternative t) => LensLike f (t a) (t b) a b
+filterFork f s = pure . getAlt . foldMap (Alt . pure @t) . foldMap toList $ (f <$> s)
+
+monoFilterFork :: forall f s t a b. (Foldable f, Alternative f) => LensLike f (f a) (f b) a b
+monoFilterFork f s = pure . asum $ fmap f s
+
+
+branching :: (Alternative f) => (s -> [s]) -> LensLike f s t s t
+branching branch f s = asum . fmap f . branch $ s
 
 alternated :: (Foldable f, Alternative f) => LensLike f (f a) (f b) a b
 alternated f s = pure . asum $ (f <$> toList s)
 
-nonDetOver :: Alternative f => (a -> b) -> LensLike f s t a b -> s -> f t
-nonDetOver f l = l %%~ (pure . f)
+altOver :: Alternative f => (a -> b) -> LensLike f s t a b -> s -> f t
+altOver f l = l %%~ (pure . f)
 
-test :: [(String, Integer)]
-test = nonDetOver (const 'x') (_1 . alternately (\x -> [x, map toUpper x]) . taking 3 traverse) $ ("testing", 3)
+runAlt :: (Alternative f) => LensLike' (AltConstF f a) s a -> s -> f a
+runAlt lns s = getAltConst $ lns (AltConstF . pure) s
+
+alternatives :: LensLike' (AltConstF [] a) s a -> s -> [a]
+alternatives lns s = getAltConst $ lns (AltConstF . pure) s
+
+alternately :: (Alternative f) => LensLike f s t a b -> LensLike f s t a b -> LensLike f s t a b
+alternately fld1 fld2 f s = fld1 f s <|> fld2 f s
+
+testAlternately :: Alternative f => LensLike' f (a, a) a
+testAlternately = _1 `alternately` _2
 
 infixr 4 %|~
 (%|~) :: Alternative f => LensLike f s t a b -> (a -> b) -> s -> f t
-(%|~) = flip nonDetOver
+(%|~) = flip altOver
 
 infixr 4 .|~
 (.|~) :: Alternative f => LensLike f s t a b -> b -> s -> f t
-(.|~) l b = nonDetOver (const b) l
+(.|~) l b = altOver (const b) l
 
 infixr 4 ^|?
 (^|?) :: s -> LensLike' (Validation (Maybe (First a))) s a -> Maybe a
@@ -65,12 +102,19 @@ guarding :: Alternative f => (a -> Bool) -> LensLike' f a a
 guarding p f s | p s = f s
                | otherwise = empty
 
-otherTest :: [(String, Int)]
-otherTest = ("testing", 3) & (_1 . alternately (\x -> [x, map toUpper x]) . taking 3 traverse) . guarding (isUpper) .|~ 'c'
+words' :: (Char, [String])
+words' = ('a', ["hylo", "ana", "cata", "zygyz"])
 
-guardTest :: [(String, Int)]
-guardTest = ("testing", 3) & (_1 . alternately (\x -> [x, map toUpper x]) . taking 3 traverse) . guarding (isLower) %|~ const 'c'
+testedFilter :: [] (Char, [String])
+testedFilter = words' & _2 . forked .|! (\x -> x == reverse x)
 
+testedFilterFork :: Maybe (Char, [String])
+testedFilterFork = words' & _2 . filterFork .|! (\x -> x == reverse x)
+
+testedMonoFilterFork' :: [] (Char, [String])
+testedMonoFilterFork' = words' & _2 . monoFilterFork .|! (\x -> x == reverse x)
+
+-- data T a = T a
 
 -- >>> ('a', [Just "hi", Nothing]) & _2 . alternated .|! const False
 -- [('a',[])]

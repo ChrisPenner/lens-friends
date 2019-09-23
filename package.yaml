@@ -71,6 +71,7 @@ dependencies:
 - adjunctions
 - distributive
 - either
+- semigroupoids
 
 library:
   source-dirs: src

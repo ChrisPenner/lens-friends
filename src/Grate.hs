@@ -7,6 +7,9 @@ import Lens.Family2.Unchecked
 import Data.Function as F
 import Data.Maybe
 import Control.Comonad
+import Control.Comonad.Traced
+import Control.Comonad.Store
+import Control.Comonad.Env
 import Control.Monad
 import Data.Distributive
 import Data.Functor.Rep as Rep
@@ -136,6 +139,12 @@ extendThrough g f = extend (degrated . helper)
     degrated :: ((s -> a) -> b) -> t
     degrated = degrating g
 
+extending :: (Comonad w) => (w a -> b) -> GrateLike w a t b t
+extending f g wa = g $ extend f wa
+
+extendingThrough :: (Comonad w) => (w a -> b) -> Grate s s a b -> GrateLike' w s s
+extendingThrough f gr g wa = g $ extendThrough gr f wa
+
 (-<) :: Comonad w => Grate s t a b -> (w a -> b) -> w s -> w t
 (-<) = extendThrough
 
@@ -171,8 +180,8 @@ factorialFix f n = n * f (n - 1)
 testFixed :: (a -> a -> Int) -> (Int -> a) -> (Int -> a) -> (Int -> Int)
 testFixed = zipWithOf (fixed factorialFix)
 
-testFixedAgain :: (a -> a -> Int) -> (Int -> a) -> (Int -> a) -> (Int -> Int)
-testFixedAgain = zipWithOf (fixed (represented . factorialFix))
+-- testFixedAgain :: (a -> a -> Int) -> (Int -> a) -> (Int -> a) -> (Int -> Int)
+-- testFixedAgain = zipWithOf (fixed (represented . factorialFix))
 
 
 testFixed' :: (Int -> [a]) -> (Int -> [a]) -> (Int -> Int)
@@ -192,6 +201,20 @@ exampleExtendThrough =
     L.& represented -< fold
 -- Pair "abc" "ABC" :| [Pair "bc" "BC",Pair "c" "C"]
 
+tracesing :: ComonadTraced m w => (s -> m) -> GrateLike w s s s s
+tracesing f = extending (traces f)
+
+tracing :: ComonadTraced m w => m -> GrateLike w s s s s
+tracing m = extending (trace m)
+
+experimenting :: (Functor f, ComonadStore i w) => (i -> f i) -> GrateLike w s x (f s) x
+experimenting f = extending (experiment f)
+
+testExperimenting :: Pair String
+testExperimenting = (represented . experimenting (\x -> [x, x+1])) (show . extract) pairStore
+
+pairStore :: Store Int (Pair Int)
+pairStore = store (\x -> Pair x (-x)) 10
 
 neList :: NE.NonEmpty (Pair String)
 neList = Pair "a" "A" NE.:| [Pair "b" "B",  Pair "c" "C"]
