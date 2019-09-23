@@ -210,8 +210,8 @@ tracing m = extending (trace m)
 experimenting :: (Functor f, ComonadStore i w) => (i -> f i) -> GrateLike w s x (f s) x
 experimenting f = extending (experiment f)
 
-testExperimenting :: Pair String
-testExperimenting = (represented . experimenting (\x -> [x, x+1])) (show . extract) pairStore
+testExperimenting :: Pair (Pair Int)
+testExperimenting = (represented . experimenting (\x -> Pair (x -1) (x+1)) . represented) extract pairStore
 
 pairStore :: Store Int (Pair Int)
 pairStore = store (\x -> Pair x (-x)) 10
