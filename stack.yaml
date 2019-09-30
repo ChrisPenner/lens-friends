@@ -3,6 +3,8 @@ extra-deps:
 - extra-1.6.18@sha256:5f1fff126f0ae47b701fff5aa8462dc63cb44465d5a724b0afd20a3d731903af,2705
 - lens-family-2.0.0
 - lens-family-core-2.0.0
+- lens-4.18.1@sha256:5c21912d5af370ae608a7e010c8a705e987e42e89bbed306de73f87166251c27,15419
+- type-equality-1@sha256:aeb9c44abf5d2edf52caff114a7da565d8328fa84bbe194828e4355ea85bf5b3,1457
 
 packages:
 - .

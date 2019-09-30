@@ -25,6 +25,7 @@ import Data.Function
 import Data.Foldable
 import Data.Monoid
 import GHC.Generics (Generic)
+import qualified Data.Map as M
 
 data SymbolOrType where
   S :: Symbol -> SymbolOrType
@@ -135,4 +136,24 @@ chooseIndex getIndex = reindexed getIndex selfIndex
 -- [("Steven","Spot"),("Steven","Mittens"),("Kaylee","Pepper"),("Kaylee","Sparky")]
 
 -- >>> pets ^. folded . to (sequenceOf _2)
+
 -- [("Steven","Spot"),("Steven","Mittens"),("Kaylee","Pepper"),("Kaylee","Sparky")]
+
+
+-- >>> [(Left 1, "a"), (Right "thing", "b")]
+--       ^.. traversed . filteredBy (_1 . _Right) . _2
+-- ["b"]
+
+-- >>> [(1, "a"), (2, "b"), (3, "c")]
+--       ^.. traversed . filteredBy (_1 . only 2) . _2
+-- ["b"]
+
+-- >>> [(M.singleton "secret" "shhhh", "a"), (M.empty, "b")]
+--         ^? traversed . filteredBy (_1 . ix "secret") . _2
+-- Just "a"
+
+testFilterBy''' = [(M.singleton "secret" "shhhh", "a"), (M.empty, "b")]
+    ^? traversed . (filteredBy (_1 . ix "secret") <. _2) . withIndex
+
+
+

@@ -49,7 +49,7 @@ executables:
 
 dependencies:
 - base >= 4.7 && < 5
-- lens
+- lens >= 4.18
 - lens-aeson
 - lens-action
 - raw-strings-qq

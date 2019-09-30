@@ -139,12 +139,6 @@ extendThrough g f = extend (degrated . helper)
     degrated :: ((s -> a) -> b) -> t
     degrated = degrating g
 
-extending :: (Comonad w) => (w a -> b) -> GrateLike w a t b t
-extending f g wa = g $ extend f wa
-
-extendingThrough :: (Comonad w) => (w a -> b) -> Grate s s a b -> GrateLike' w s s
-extendingThrough f gr g wa = g $ extendThrough gr f wa
-
 (-<) :: Comonad w => Grate s t a b -> (w a -> b) -> w s -> w t
 (-<) = extendThrough
 
@@ -206,6 +200,12 @@ tracesing f = extending (traces f)
 
 tracing :: ComonadTraced m w => m -> GrateLike w s s s s
 tracing m = extending (trace m)
+
+extendingThrough :: (Comonad w) => (w a -> b) -> Grate s s a b -> GrateLike' w s s
+extendingThrough f gr g wa = g $ extendThrough gr f wa
+
+extending :: (Comonad w) => (w a -> b) -> GrateLike w a t b t
+extending f g wa = g $ extend f wa
 
 experimenting :: (Functor f, ComonadStore i w) => (i -> f i) -> GrateLike w s x (f s) x
 experimenting f = extending (experiment f)
