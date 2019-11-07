@@ -72,6 +72,7 @@ dependencies:
 - distributive
 - either
 - semigroupoids
+- free-category
 
 library:
   source-dirs: src

@@ -13,7 +13,7 @@ import Data.Aeson.Lens
 import qualified Data.Map as M
 import qualified Data.Text as T
 
-article :: ByteString
+article :: T.Text
 article = [r|
 {"id": "my-title"}
 # My Title
@@ -30,7 +30,10 @@ myCode
 jsonAnnotation :: Regex
 jsonAnnotation = compile "^\\{.*\\}$" [multiline]
 
-capitalizedTitles = article &  regexBS jsonAnnotation . match . key "id" . _String %~ T.toUpper
+-- capitalizedTitles = article &  regexBS jsonAnnotation . match . key "id" . _String %~ T.toUpper
+
+recurse :: Traversal' T.Text [T.Text]
+recurse = regex [rx|\(\$ (?R) (?R)\)|\(L (?R)\)|#\d+|] . groups
 
 -- allTitles = article ^.. regexBS jsonAnnotation . match . key "id" . _String
 -- ["my-title","code-block"]
