@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module FizzBuzz where
 
 import Control.Lens
@@ -9,6 +10,7 @@ import qualified Data.Text as T
 import Data.Aeson.Lens
 import Data.Aeson
 import Data.Data
+import Data.List
 
 sample :: (MyType, [(String, Int)])
 sample = (MyType 1 "something", [("One", 1), ("Two", 2), ("Three", 3)])
@@ -107,3 +109,19 @@ fizzbuzz = show & outside (_DividedBy 3) . mapped .~ "Fizz"
 -- Fizz
 -- 19
 -- Buzz
+
+data Record = Record [(String, Record)]
+
+
+f :: Record -> IO String
+f (Record ts) = do
+    (ts' :: [(String, String)]) <- (traverse . traverse) f ts
+    let termStrings :: String = intercalate ", " . fmap showTerm $ ts'
+    return $ "{" <> termStrings <> "}"
+  where
+    showTerm :: (String, String) -> String
+    showTerm (v, t) = v <> "=" <> t
+
+
+      -- ts' <- traverse (\(v1,t1) -> ((++) (v1 ++ "=")) <$> f t1) ts
+      -- pure $ "{" ++ unwords (intersperse "," ts') ++ "}"
