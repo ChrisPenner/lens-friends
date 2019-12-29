@@ -73,6 +73,10 @@ dependencies:
 - either
 - semigroupoids
 - free-category
+- http-types
+- wai
+- taggy
+- taggy-lens
 
 library:
   source-dirs: src
