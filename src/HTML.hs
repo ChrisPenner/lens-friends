@@ -41,5 +41,5 @@ attrIs :: T.Text -> T.Text -> Traversal' Node Node
 attrIs attrName val = attrMatches attrName (== val)
 
 -- Selects children of current node with matching siblings
-hasSibling :: Traversal' Node a -> Traversal' Node b -> Traversal' Node b
-hasSibling ref selection =
+-- hasSibling :: Traversal' Node a -> Traversal' Node b -> Traversal' Node b
+-- hasSibling ref selection =

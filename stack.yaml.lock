@@ -81,9 +81,23 @@ packages:
       sha256: 332730a4a17634a4d0948a68811e52bb9d5c61065181aed47aec6abd88c75871
   original:
     hackage: taggy-lens-0.1.2@sha256:091ca81d02bd3d7fb493dce0148e1a38f25eb178a1ebd751043a23239e5e3265,3009
+- completed:
+    hackage: witherable-0.3.5@sha256:6590a15735b50ac14dcc138d4265ff1585d5f3e9d3047d5ebc5abf4cd5f50084,1476
+    pantry-tree:
+      size: 271
+      sha256: b99f21dbac28da031eb7c787fbffbe5e77e0aee42b64b5dda082470e907d5ab5
+  original:
+    hackage: witherable-0.3.5@sha256:6590a15735b50ac14dcc138d4265ff1585d5f3e9d3047d5ebc5abf4cd5f50084,1476
+- completed:
+    hackage: witherable-class-0@sha256:91f05518f9f4af5b02424f13ee7dcdab5d6618e01346aa2f388a72ff93e2e501,775
+    pantry-tree:
+      size: 277
+      sha256: e99696bf95da593a3892c7b9a28db09ffd139b4b1b313f32cec9d26979aa7ce2
+  original:
+    hackage: witherable-class-0@sha256:91f05518f9f4af5b02424f13ee7dcdab5d6618e01346aa2f388a72ff93e2e501,775
 snapshots:
 - completed:
-    size: 523448
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/1.yaml
-    sha256: 0045b9bae36c3bb2dd374c29b586389845af1557eea0423958d152fc500d4fbf
-  original: lts-14.1
+    size: 524154
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/20.yaml
+    sha256: 2f5099f69ddb6abfe64400fe1e6a604e8e628f55e6837211cd70a81eb0a8fa4d
+  original: lts-14.20
