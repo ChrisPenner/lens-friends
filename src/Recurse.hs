@@ -22,6 +22,7 @@ import Control.Arrow
 import Data.Proxy
 import Data.Data
 import Data.Data.Lens
+import Data.Functor.Foldable
 
 -- just unfold?
 recurseOf :: Traversal' a a -> (a -> a) -> a -> a
@@ -134,5 +135,12 @@ ktree =
           [ KTree 2 [KTree 4 []]
           , KTree 3 []
           ]
+
+sumAlg :: ListF Int (Identity Int) -> Int
+sumAlg Nil = 0
+sumAlg (Cons a (Identity b)) = a + b
+
+opticalSum :: Int
+opticalSum = [1, 2, 3] & cata %~ sumAlg
 
 

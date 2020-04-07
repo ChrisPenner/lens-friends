@@ -81,6 +81,7 @@ dependencies:
 - taggy
 - taggy-lens
 - linear
+- recursion-schemes
 
 library:
   source-dirs: src
